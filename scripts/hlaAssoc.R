@@ -85,7 +85,7 @@ allele.Glm.Fishers = function(hla, hla.meta, hla.allele, probCutoff){
     HLA_countCarrier[, HLA_allele_name] = data.table(apply(HLA_countCarrier[, HLA_allele_name, with =F], 2, function(x) ifelse(x > 0, 1, 0)))
     lapply(HLA_allele_name, function(allele){
       model.design=paste0("Pheno ~ ",allele,"+PC1+PC2+PC3+PC4")
-      fit = glm(model.design, data = HLA_countCarrier)
+      fit = glm(model.design, data = HLA_countCarrier, family = 'binomial')
       fitDF = data.table(tidy(fit))
       fitDF=fitDF[term == allele]
       #print(fitDF)
