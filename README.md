@@ -5,7 +5,7 @@ Best to use imputed HLA region (preferably 1000 genomes phase3 or phase1, chr6:2
 
 A typical usage would require 3 arguments (below).
 
-Argument 1 = the trained model in this case (attached with this email TRAINED_PSYCH_EUR_HLA_Model_Oct2020.Rdata).
+Argument 1 = the trained model in this case (ask ambati@stanford.edu for models).
 
 Argument 2 = is the plink binary file that contains genotypes (preferably imputed ones to increase coverage with the snps in model) (prefix only).
 
@@ -15,7 +15,7 @@ Argument 3 = is the path to the output filename (prefix only).
 
 Example usage in linux or mac os terminal would be from your working directory containing the plink binaries and the model along with attached script.
 
-#Rscript HibagPred.R  TRAINED_TRAINED_PSYCH_EUR_HLA_Model_Oct2020.Rdata    plink_binary_prefix  output_prefix
+#Rscript HibagPred.R  model.Rdata    plink_binary_prefix  output_prefix
 
 This requires HIBAG package and data table package which the script will automatically install if it doesn’t detect them.
 
