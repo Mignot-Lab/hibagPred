@@ -38,7 +38,8 @@ the pheno must all be binary 1 or 0 and missing can be labelled as NA
 
 Argument 3 = is the path to the output filename (prefix only).
 
-Example usage in linux or mac os terminal would be from your working directory
+Example usage in linux or mac os terminal would be from your working directory.
+
 ```Rscript scripts/hlaAssoc.R 1000g_MHC_Preds_IMP meta/hlaMeta.csv easTest```
 
 If the script ran successfully, you will have the associations in the folder hlaAssocs/*.csv , see example in hlaAssocs/easTest.csv
