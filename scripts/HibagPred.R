@@ -56,3 +56,4 @@ pred_hibag=function(hla, yourgeno, model.list, filePre){
 
 output_pred_QC=lapply(hlas_id, pred_hibag,  yourgeno = yourgeno, model.list = model.list, filePre=arg[3])
 sink()
+

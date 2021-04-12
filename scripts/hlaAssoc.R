@@ -55,8 +55,6 @@ metaIO=function(metaFile){
 
 }
 
-
-
 ## filter hibag and one hot encode the HLA object
 hibagFilter=function(hla.allele, probCutoff){
   filtered_HLA_gene = hla.allele$value[hla.allele$value$prob >= probCutoff,]
@@ -102,20 +100,18 @@ allele.Glm.Fishers = function(hla, hla.meta, hla.allele, probCutoff){
       Control.Alleles= sum(HLA_count[Pheno == 0, allele, with =F])
       Control.Alelles.Not = (2*n.controls)-Control.Alleles
       Mat.Carrier = matrix(c(Case.Car,  Control.Car, Case.Not, Control.Not), nrow = 2, dimnames = list(c('Case', 'Control'), c('Yes', 'No')))
-      #print(prop.table(Mat.Carrier, 1))
       Fishers.Fit = fisher.test(Mat.Carrier)
-      Chi.Fit = chisq.test(Mat.Carrier)
       allele=gsub('X', '',allele)
-      temp=data.frame(row.names = NULL, HLA=hla, allele, 
+      outPut=data.frame(row.names = NULL, HLA=hla, allele, 
                       rsid= paste0(hla, ':', allele),
                       F.Pval = Fishers.Fit$p.value, F.OR = Fishers.Fit$estimate, F.CI=paste0( signif(Fishers.Fit$conf.int[1], 3),'-', signif(Fishers.Fit$conf.int[2],3)), 
-                      Chi.Pval = Chi.Fit$p.value,Chi.OR = Chi.Fit$statistic, glm.P=fitDF$p.value, glm.E=fitDF$estimate, glm.StdE = fitDF$std.error,
+                      glm.P=fitDF$p.value, glm.E=fitDF$estimate, glm.StdE = fitDF$std.error,
                       Case.Car, Case.Freq=signif(Case.Car/n.cases,3), Control.Car, 
                       Control.Freq=signif(Control.Car/n.controls, 3),
                       Case.Not, Control.Not, Case.Alleles, Case.Alelles.Not, Control.Alleles, Control.Alelles.Not, 
                       Case.Freq.Allele = signif(Case.Alleles/(2*n.cases),3), 
                       Control.Freq.Allele = signif(Control.Alleles/(2*n.controls),3), totalFreq=totalCarrier/(n.cases+n.controls), totalN=(n.cases+n.controls))
-      return(temp)
+      return(outPut)
     }) 
   }
 }
