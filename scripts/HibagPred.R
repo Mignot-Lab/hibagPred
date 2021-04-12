@@ -47,7 +47,7 @@ pred_hibag=function(hla, yourgeno, model.list, filePre){
   hla.names = c(paste0(hla, '.1'), paste0(hla, '.2'), paste0(hla, '.prob'))
   temp = pred.guess$value
   names(temp)[2:4] = hla.names
-  fileOut = paste0(filePre,'_IMP_', hla,'.csv')
+  fileOut = paste0('hlaOut/', filePre,'_IMP_', hla,'.csv')
   cat('WRITING TO FILE', fileOut, timestamp())
   fwrite(temp, file=fileOut)
   #return(pred.guess$value)

@@ -15,8 +15,15 @@ Argument 3 = is the path to the output filename (prefix only).
 
 Example usage in linux or mac os terminal would be from your working directory containing the plink binaries and the model along with attached script.
 
-```Rscript HibagPred.R  model.Rdata    plink_binary_prefix  hlaOut/output_prefix```
+```Rscript HibagPred.R  model.Rdata    plink_binary_prefix  output_prefix```
 
 This requires HIBAG package and data table package which the script will automatically install if it doesn’t detect them.
 After the script runs, you will have the respective output file with HLA calls and probabilities  and an associated log file.
 
+# hlaAssoc
+A script to run associations from the predicted HLA outs in hlaOut folder
+This script requires the following dependencies
+1. data.table
+1. Hibag
+1. tidyverse
+1. broom
