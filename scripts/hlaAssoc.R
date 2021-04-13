@@ -13,6 +13,7 @@ if(length(libLoad) == 4){
   lapply(libLoad, require, character.only = T)
   message(paste0('LIBS LOADED ', libLoad, timestamp(), collapse = '\n'))
 } else {
+    
   message('CHECK IF LIBRARIES HIBAG, tidyverse, broom & data.table ARE INSTALLED? ', timestamp())
 }
 
@@ -24,12 +25,12 @@ fileIO=function(filePre){
     hlaNames = gsub('IMP_|.csv', '', unique(str_extract(pattern = "IMP_[^\\s]+", pathTohla)))
     hlaDFlist = lapply(pathTohla, function(hlaFile){
       temp = fread(hlaFile, key='sample.id', select = c(1:4)) # take first 4 cols to output
-      #message(paste0('READ ROWS ', dim(temp)[1], ' FROM ', hlaFile))
     })
     names(hlaDFlist) = hlaNames
     return(hlaDFlist)
   } else {
     message('HAVE IMPUTATIONS BEEN PERFORMED ? RUN HibagPred.R FIRST OR CHECK DIR LOCATION hlaOut/ ', timestamp() )
+    stop()
   }
 }
 
