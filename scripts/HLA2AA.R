@@ -26,7 +26,7 @@ HLA2AA=function(arg){
   hlaFile=fread(arg[1])
   hlaObj=hlaAllele(sample.id = hlaFile$sample.id, H1 = hlaFile$DRB1.1, H2=hlaFile$DRB1.2, prob = hlaFile$DRB1.prob, locus = 'DRB1')
   hla.aa=hlaConvSequence(hla = hlaObj, code = "P.code.merge")
-  filtered_HLA_gene <- hla.aa$value[hla.aa$value$prob > 0.3,]
+  filtered_HLA_gene <- hla.aa$value[hla.aa$value$prob > 0.1,]
   pos.table = summary(hla.aa)
   increment <- pos.table[1,"Pos"] - 1
   pos.table[,"Pos"] <- pos.table[,"Pos"] - increment
@@ -44,9 +44,8 @@ HLA2AA=function(arg){
     names(HLA_count)[names(HLA_count) == "*"] <- "Amb"	
     names(HLA_count)[names(HLA_count) == "."] <- "CNV" 
     names(HLA_count)=paste0(names(HLA_count), '_', pos+increment)
-    head(HLA_count)
+    return(HLA_count)
   })
-  return(out)
 }
 ## convert to HLA amino acids from HLA -DR calls
 convList=HLA2AA(arg)
