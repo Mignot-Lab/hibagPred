@@ -40,7 +40,7 @@ metaIO=function(metaFile){
   metaIn = fread(metaFile, key='sample.id')
   if ('Pheno' %in% names(metaIn)){
     message(paste0('PHENO NAME IDENTIFIED AS PHENO', timestamp()))
-    phenoVec = metaIn[['Pheno']]
+    phenoVec = as.numeric(metaIn[['Pheno']])
     casesN = sum(phenoVec == 1)
     controlsN = sum(phenoVec == 0)
     if (casesN > 0 & controlsN > 0){
