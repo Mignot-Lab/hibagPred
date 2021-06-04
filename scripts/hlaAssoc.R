@@ -40,10 +40,21 @@ metaIO=function(metaFile){
   metaIn = fread(metaFile, key='sample.id')
   if ('Pheno' %in% names(metaIn)){
     message(paste0('PHENO NAME IDENTIFIED AS PHENO', timestamp()))
-    casesN = sum(metaIn[['Pheno']] == 1)
-    controlsN = sum(metaIn[['Pheno']] == 0)
-    message(paste0('IDENTIFIED CASES N = ', casesN))
-    message(paste0('IDENTIFIED CTRLS N = ', controlsN))
+    phenoVec = metaIn[['Pheno']]
+    casesN = sum(phenoVec == 1)
+    controlsN = sum(phenoVec == 0)
+    if (casesN > 0 & controlsN > 0){
+      message(paste0('IDENTIFIED CASES N = ', casesN))
+      message(paste0('IDENTIFIED CTRLS N = ', controlsN))
+    } else {
+      message('HAVE CASES BEEN CODED AS 1 AND CONTROLS AS 0 ? CODING PLINK PHENO TO 0- CONTROLS AND 1 - CASES')
+      phenoVec = ifelse(phenoVec == 1, 0, ifelse(phenoVec == 2, 1, NA))
+      casesN = sum(phenoVec == 1)
+      controlsN = sum(phenoVec == 0)
+      message(paste0('IDENTIFIED CASES N = ', casesN))
+      message(paste0('IDENTIFIED CTRLS N = ', controlsN))
+      metaIn[['Pheno']] = phenoVec
+    }
     ## plot the PCS
     pcPlot = ggplot(metaIn, aes(PC1, PC2, color=factor(Pheno)))+geom_point()
     plotName = paste0('hlaAssocs/',arg[3], '.png')
