@@ -8,12 +8,13 @@ outFile = paste0(arg[3], '.csv')
 
 ## load libraries
 packList = rownames(installed.packages())
-libLoad=packList[grep('tidyverse|data.table|HIBAG|broom|haplo.stats', packList)]
-if(length(libLoad) == 5){
+libLoad=packList[grep('tidyverse|data.table|HIBAG|broom', packList)]
+if(length(libLoad) == 4){
   lapply(libLoad, require, character.only = T)
   message(paste0('LIBS LOADED ', libLoad, timestamp(), collapse = '\n'))
 } else {
-  message('CHECK IF LIBRARIES HIBAG, tidyverse, broom, haplostats & data.table ARE INSTALLED? ', timestamp())
+    
+  message('CHECK IF LIBRARIES HIBAG, tidyverse, broom & data.table ARE INSTALLED? ', timestamp())
 }
 
 ## functions to data IN and processing
