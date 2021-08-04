@@ -1,6 +1,9 @@
 ## author : ambati@stanford.edu
 ## V1 
 arg=commandArgs(trailingOnly = T)
+# arg[1] = "1000g_MHC_Preds_IMP"
+# arg[2] = "meta/hlaMeta.csv"
+# arg[3] = "easHaps"
 hlaPattern = arg[1]
 metaFile = arg[2]
 outFile = paste0(arg[3], '.csv')
@@ -8,13 +11,13 @@ outFile = paste0(arg[3], '.csv')
 
 ## load libraries
 packList = rownames(installed.packages())
-libLoad=packList[grep('tidyverse|data.table|HIBAG|broom', packList)]
-if(length(libLoad) == 4){
+libLoad=packList[grep('tidyverse|data.table|HIBAG|broom|haplo.stats', packList)]
+if(length(libLoad) == 5){
   lapply(libLoad, require, character.only = T)
   message(paste0('LIBS LOADED ', libLoad, timestamp(), collapse = '\n'))
 } else {
     
-  message('CHECK IF LIBRARIES HIBAG, tidyverse, broom & data.table ARE INSTALLED? ', timestamp())
+  message('CHECK IF LIBRARIES HIBAG, tidyverse, broom, haplo.stats & data.table ARE INSTALLED? ', timestamp())
 }
 
 ## functions to data IN and processing
@@ -34,7 +37,38 @@ fileIO=function(filePre){
   }
 }
 
-
+##function to make haplotypes class II
+makeHaps=function(hlaDFlist){
+  outPutList = NULL
+  hlasNeeded = c('DRB1', 'DQB1', 'DQA1')
+  if(all(hlasNeeded %in% names(hlaDFlist))){
+    dr1.df = hlaDFlist[['DRB1']][, 1:3]
+    dqa.df = hlaDFlist[['DQB1']][, 1:3]
+    dqb.df = hlaDFlist[['DQA1']][, 1:3]
+    setkey(dr1.df, key='sample.id');setkey(dqb.df, key='sample.id');setkey(dqa.df, key='sample.id')
+    genos=as.data.frame(dqb.df[dqa.df][dr1.df])
+    if(dim(genos)[1] > 1){
+    #locus.label = c('DQA1', 'DQB1', 'DRB1')
+      outPutList$IDS = genos$sample.id
+      fit=haplo.em(geno = genos[, -1], locus.label=c('DQA1', 'DQB1', 'DRB1'))
+      outPutList$hapFreq = print(fit)
+      outPutList$genos = genos
+      haplCalls = data.table(sample.id=genos$sample.id[fit$subj.id], hap.1=fit$hap1code,  hap.2=fit$hap2code, hap.prob=fit$post)
+      haplotypes = apply(fit$haplotype, 1, function(x) paste0(x, collapse = "_"))
+      ##assign actuall lhaps
+      haplCalls$hap.1=haplotypes[haplCalls$hap.1]
+      haplCalls$hap.2=haplotypes[haplCalls$hap.2]
+      outPutList$fit = fit
+      outPutList$haplCalls = haplCalls#hlaAllele(sample.id = haplCalls$id, H1 = haplCalls$hap1, H2=haplCalls$hap2, prob = haplCalls$prob)
+      #outPutList$haplCalls$locus = 'DQA_DQB_DRB'
+      outPutList$haplotypes = haplotypes
+      return(outPutList)
+    } else {
+      message('CHECK OBJECT FOR PRESENCE OF DRB1 DQA1 & DQB1 HLA CALLS', timestamp())
+      return(NULL)
+    }
+  }
+}
 ## function to parse PCS and DX 
 metaIO=function(metaFile){
   metaIn = fread(metaFile, key='sample.id')
@@ -47,7 +81,7 @@ metaIO=function(metaFile){
       message(paste0('IDENTIFIED CASES N = ', casesN))
       message(paste0('IDENTIFIED CTRLS N = ', controlsN))
     } else {
-      message('HAVE CASES BEEN CODED AS 1 AND CONTROLS AS 0 ? CODING PLINK PHENO TO 0- CONTROLS AND 1 - CASES')
+      message('HAVE CASES BEEN CODED AS 1 AND CONTROLS AS 0 ? CODING PLINK PHENO TO 0- CONTROLS AND 1 - CASES', timestamp())
       phenoVec = ifelse(phenoVec == 1, 0, ifelse(phenoVec == 2, 1, NA))
       casesN = sum(phenoVec == 1)
       controlsN = sum(phenoVec == 0)
@@ -131,6 +165,13 @@ allele.Glm.Fishers = function(hla, hla.meta, hla.allele, probCutoff){
 
 ## call the functions and load the data
 hlaDFlist = fileIO(filePre = hlaPattern)
+hlaClassIIHaps = makeHaps(hlaDFlist = hlaDFlist)
+if (exists("hlaClassIIHaps")){
+  hlaDFlist$hap = hlaClassIIHaps$haplCalls
+  message('HAPLOTYPE ESTIMATION SUCCESSFUL ADDING HAPLOTYPES FOR ASSOCIATIONS ', timestamp())
+} else {
+  message('HAPLOTYPE ESTIMATION FAILED', timestamp())
+}
 hlaNames = names(hlaDFlist)
 hla.meta = metaIO(metaFile = metaFile)
 
