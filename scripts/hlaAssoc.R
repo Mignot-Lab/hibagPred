@@ -40,13 +40,13 @@ fileIO=function(filePre){
 ##function to make haplotypes class II
 makeHaps=function(hlaDFlist){
   outPutList = NULL
-  hlasNeeded = c('DRB1', 'DQB1', 'DQA1')
+  hlasNeeded = c('DQA1', 'DQB1', 'DRB1')
   if(all(hlasNeeded %in% names(hlaDFlist))){
     dr1.df = hlaDFlist[['DRB1']][, 1:3]
     dqa.df = hlaDFlist[['DQB1']][, 1:3]
     dqb.df = hlaDFlist[['DQA1']][, 1:3]
     setkey(dr1.df, key='sample.id');setkey(dqb.df, key='sample.id');setkey(dqa.df, key='sample.id')
-    genos=as.data.frame(dqb.df[dqa.df][dr1.df])
+    genos=as.data.frame(dqa.df[dqb.df][dr1.df])
     if(dim(genos)[1] > 1){
     #locus.label = c('DQA1', 'DQB1', 'DRB1')
       outPutList$IDS = genos$sample.id
