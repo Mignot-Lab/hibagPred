@@ -46,7 +46,7 @@ makeHaps=function(hlaDFlist){
     dqa.df = hlaDFlist[['DQB1']][, 1:3]
     dqb.df = hlaDFlist[['DQA1']][, 1:3]
     setkey(dr1.df, key='sample.id');setkey(dqb.df, key='sample.id');setkey(dqa.df, key='sample.id')
-    genos=as.data.frame(dqa.df[dqb.df][dr1.df])
+    genos=as.data.frame(dqa.df[dqb.df][dr1.df])#
     if(dim(genos)[1] > 1){
     #locus.label = c('DQA1', 'DQB1', 'DRB1')
       outPutList$IDS = genos$sample.id
