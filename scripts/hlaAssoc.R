@@ -40,7 +40,7 @@ fileIO=function(filePre){
 ##function to make haplotypes class II
 makeHaps=function(hlaDFlist){
   outPutList = NULL
-  hlasNeeded = c('DQA1', 'DQB1', 'DRB1')
+  hlasNeeded = c('DQB1', 'DQA1', 'DRB1')
   if(all(hlasNeeded %in% names(hlaDFlist))){
     dr1.df = hlaDFlist[['DRB1']][, 1:3]
     dqa.df = hlaDFlist[['DQB1']][, 1:3]
@@ -50,7 +50,7 @@ makeHaps=function(hlaDFlist){
     if(dim(genos)[1] > 1){
     #locus.label = c('DQA1', 'DQB1', 'DRB1')
       outPutList$IDS = genos$sample.id
-      fit=haplo.em(geno = genos[, -1], locus.label=c('DQA1', 'DQB1', 'DRB1'))
+      fit=haplo.em(geno = genos[, -1], locus.label=c('DQB1', 'DQA1', 'DRB1'))
       outPutList$hapFreq = print(fit)
       outPutList$genos = genos
       haplCalls = data.table(sample.id=genos$sample.id[fit$subj.id], hap.1=fit$hap1code,  hap.2=fit$hap2code, hap.prob=fit$post)
@@ -60,7 +60,7 @@ makeHaps=function(hlaDFlist){
       haplCalls$hap.2=haplotypes[haplCalls$hap.2]
       outPutList$fit = fit
       outPutList$haplCalls = haplCalls#hlaAllele(sample.id = haplCalls$id, H1 = haplCalls$hap1, H2=haplCalls$hap2, prob = haplCalls$prob)
-      #outPutList$haplCalls$locus = 'DQA_DQB_DRB'
+      #outPutList$haplCalls$locus = 'DQB_DQA_DRB'
       outPutList$haplotypes = haplotypes
       return(outPutList)
     } else {
