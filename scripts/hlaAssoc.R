@@ -90,10 +90,10 @@ metaIO=function(metaFile){
       metaIn[['Pheno']] = phenoVec
     }
     ## plot the PCS
-    pcPlot = ggplot(metaIn, aes(PC1, PC2, color=factor(Pheno)))+geom_point()
-    plotName = paste0('hlaAssocs/',arg[3], '.png')
-    message(paste0('PLOTTING PCS AND SAVING TO ', plotName, ' ', timestamp()))
-    ggsave(filename = plotName, device = 'png', height = 6.7, width = 7.7, dpi = 400)
+    #pcPlot = ggplot(metaIn, aes(PC1, PC2, color=factor(Pheno)))+geom_point()
+    #plotName = paste0('hlaAssocs/',arg[3], '.png')
+    #message(paste0('PLOTTING PCS AND SAVING TO ', plotName, ' ', timestamp()))
+    #ggsave(filename = plotName, device = 'png', height = 6.7, width = 7.7, dpi = 400)
     return(metaIn)
   } else {
     stop('META FILE DOESNT CONTAIN PHENO NAME INPUT')
