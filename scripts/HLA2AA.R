@@ -22,13 +22,14 @@ if('HIBAG' %in% PackList){
   require(HIBAG)
 }
 
+
 ## main function 
 HLA2AA=function(arg){
   hlaFile=fread(arg[1])
   locus = arg[3]
   hlaObj=hlaAllele(sample.id = hlaFile$sample.id, H1 = hlaFile[[2]], H2=hlaFile[[3]], prob = hlaFile[[4]], locus = locus, max.resolution = '4-digit')
   hla.aa=hlaConvSequence(hla = hlaObj, code = "P.code.merge")
-  filtered_HLA_gene <- hla.aa$value[hla.aa$value$prob > 0,] # customary template
+  filtered_HLA_gene <- hla.aa$value[hla.aa$value$prob > 0.3,] # place holder
   pos.table = summary(hla.aa)
   increment <- pos.table[1,"Pos"] - 1
   pos.table[,"Pos"] <- pos.table[,"Pos"] - increment
@@ -51,15 +52,19 @@ HLA2AA=function(arg){
   })
 }
 ## convert to HLA amino acids from HLA -DR calls
-convList=HLA2AA(arg)
-convDF = data.table(sample.id=rownames(convList[[1]]))
-for(pos in convList){
-  temp=data.table(pos, keep.rownames = T)
-  if(identical(temp$rn, convDF$sample.id)){
-    convDF = cbind.data.frame(convDF, pos)
+if(!any(arg[3] %in% c('DQB1', 'DQA1', 'DRB1'))){
+  stop('INVALID LOCI SPECIFIED PLEASE SELECT ONE OF DQB1 DQA1 DRB1')
+  } else {
+  convList=HLA2AA(arg)
+  convDF = data.table(sample.id=rownames(convList[[1]]))
+  for(pos in convList){
+    temp=data.table(pos, keep.rownames = T)
+    if(identical(temp$rn, convDF$sample.id)){
+      convDF = cbind.data.frame(convDF, pos)
+    }
   }
+  setDT(convDF)
+  convDF
+  ## write out the amino acid DF
+  fwrite(convDF, file = arg[2])
 }
-setDT(convDF)
-convDF
-## write out the amino acid DF
-fwrite(convDF, file = arg[2])
