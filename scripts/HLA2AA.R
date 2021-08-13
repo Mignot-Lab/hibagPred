@@ -27,7 +27,7 @@ if('HIBAG' %in% PackList){
 HLA2AA=function(arg){
   hlaFile=fread(arg[1])
   locus = arg[3]
-  hlaObj=hlaAllele(sample.id = hlaFile$sample.id, H1 = hlaFile[[2]], H2=hlaFile[[3]], prob = hlaFile[[4]], locus = locus, max.resolution = '4-digit')
+  hlaObj=hlaAllele(sample.id = hlaFile[[1]], H1 = hlaFile[[2]], H2=hlaFile[[3]], prob = hlaFile[[4]], locus = locus, max.resolution = '4-digit')
   hla.aa=hlaConvSequence(hla = hlaObj, code = "P.code.merge")
   filtered_HLA_gene <- hla.aa$value[hla.aa$value$prob > 0.3,] # place holder
   pos.table = summary(hla.aa)
