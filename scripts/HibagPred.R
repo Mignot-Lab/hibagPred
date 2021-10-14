@@ -11,6 +11,7 @@ sink(file= paste0(arg[3], '.log'))
 PackList = rownames(installed.packages())
 if('data.table' %in%  PackList){
   require(data.table)
+  require(parallel)
 } else {
   install.packages('data.table')
   require(data.table)
@@ -26,7 +27,7 @@ if('HIBAG' %in% PackList){
   require(HIBAG)
 }
 
-
+cl = makeCluster(24)
 ## load the models
 
 model.list <- get(load(arg[1])) 
@@ -37,19 +38,24 @@ summary(yourgeno)
 output_pred_QC=list()
 hlas_id = names(model.list)
 
+
 #'''predict function to wrap in a lapply call'''
 pred_hibag=function(hla, yourgeno, model.list, filePre){
   model = hlaModelFromObj(model.list[[hla]])
   print(model)
-  #pred.guess = predict(model, yourgeno, type = "response+prob", cl=cl, verbose = T, match.type="Position")
-  pred.guess = predict(model, yourgeno, type = "response+prob", verbose = T, match.type="Position")
-  cat('PREDICTED ', hla, timestamp())
-  hla.names = c(paste0(hla, '.1'), paste0(hla, '.2'), paste0(hla, '.prob'))
-  temp = pred.guess$value
-  names(temp)[2:4] = hla.names
   fileOut = paste0('hlaOut/', filePre,'_IMP_', hla,'.csv')
-  cat('WRITING TO FILE', fileOut, timestamp())
-  fwrite(temp, file=fileOut)
+  if (!file.exists(fileOut)) {
+    pred.guess = predict(model, yourgeno, type = "response+prob", cl=cl, verbose = T, match.type="Position")
+    #pred.guess = predict(model, yourgeno, type = "response+prob", verbose = T, match.type="Position")
+    cat('PREDICTED ', hla, timestamp())
+    hla.names = c(paste0(hla, '.1'), paste0(hla, '.2'), paste0(hla, '.prob'))
+    temp = pred.guess$value
+    names(temp)[2:4] = hla.names
+    cat('WRITING TO FILE', fileOut, timestamp())
+    fwrite(temp, file=fileOut)
+  } else {
+    cat('FILE EXISTS ', fileOut, timestamp())
+  }
   #return(pred.guess$value)
 }
 ## predict and write out the predictions

@@ -23,7 +23,7 @@ if(length(libLoad) == 5){
 ## functions to data IN and processing
 fileIO=function(filePre){
   pathTohla=list.files(path = 'hlaOut/', pattern = paste0(filePre, '*'), full.names = T)
-  if (length(pathTohla) == 11){
+  if (length(pathTohla) >= 3){
     message(paste0('IDENTIFIED HLA IMPUTE FILES IN hlaOut/ ', pathTohla, ' ', timestamp(), collapse = '\n'), appendLF = T)
     hlaNames = gsub('IMP_|.csv', '', unique(str_extract(pattern = "IMP_[^\\s]+", pathTohla)))
     hlaDFlist = lapply(pathTohla, function(hlaFile){

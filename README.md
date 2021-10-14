@@ -40,7 +40,7 @@ Argument 3 = is the path to the output filename (prefix only).
 
 Example usage in linux or mac os terminal would be from your working directory.
 
-```Rscript scripts/hlaAssoc.R 1000g_MHC_Preds_IMP meta/hlaMeta.csv easTest```
+```Rscript scripts/hlaAssoc.R EAS1KG_IMP meta/hlaMeta.csv easHap```
 
 If the script ran successfully, you will have the associations in the folder hlaAssocs/*.csv , see example in hlaAssocs/easTest.csv
 
@@ -60,4 +60,4 @@ Argument 3 = for now only class 2 HLA loci - an option between DRB1, DQB1 or DQA
 
 Example usage in linux or mac os terminal would be from your working directory.
 
-```Rscript scripts/HLA2AA.R hlaOut/1000g_MHC_Preds_IMP_DRB1.csv hlaOut/DRB1_AA.csv DRB1```
+```Rscript scripts/HLA2AA.R hlaOut/EAS1KG_IMP_DRB1.csv hlaOut/DRB1_AA.csv DRB1```
