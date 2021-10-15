@@ -39,7 +39,9 @@ vignettes/*.pdf
 .Renviron
 
 #csv files
+1000g_MHC_Preds_IMP*
 
 #log file
 *.log
 *.zip
+*.json
