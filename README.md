@@ -45,19 +45,20 @@ Example usage in linux or mac os terminal would be from your working directory.
 If the script ran successfully, you will have the associations in the folder hlaAssocs/*.csv , see example in hlaAssocs/easTest.csv
 
 # HLA2AA.R
-A script to make Amino Acid calls from predicted HLA outs in hlaOut folder
+A script to make Amino Acid calls and run associations from HLA-Class II  (DQB1, DQA1, DRB1) predicted HLA outs in hlaOut folder
 This script requires the following dependencies
 1. data.table
 1. HIBAG
 
 The script requires the following arguments
 
-Argument 1 = the output from hibag prediction containing the HLA calls for example hlaOut/1000g_MHC_Preds_IMP_DRB1.csv.
+Argument 1 = the file prefix of the imputed HLA, in this example it is 1000g_MHC_Preds_IMP.
 
-Argument 2 = is the full path of the outfile containing amino acid calls.
+Argument 2 = is the meta file that must contain the  sample.id, phenotype and the first 4 genetic prinicipal components. The column names must be (sample.id,PC1,PC2,PC3,PC4,Pheno) , see example in meta/hlaMeta.csv, 
+the pheno must all be binary 1 or 0 and missing can be labelled as NA
 
-Argument 3 = for now only class 2 HLA loci - an option between DRB1, DQB1 or DQA1. will stop if any other loci is passed
+Argument 3 = is the path to the output filename (prefix only).
 
 Example usage in linux or mac os terminal would be from your working directory.
 
-```Rscript scripts/HLA2AA.R hlaOut/EAS1KG_IMP_DRB1.csv hlaOut/DRB1_AA.csv DRB1```
+```Rscript scripts/HLA2AA.R EAS1KG_IMP meta/hlaMeta.csv easAA```
