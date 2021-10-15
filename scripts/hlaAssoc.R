@@ -88,12 +88,7 @@ metaIO=function(metaFile){
       message(paste0('IDENTIFIED CASES N = ', casesN))
       message(paste0('IDENTIFIED CTRLS N = ', controlsN))
       metaIn[['Pheno']] = phenoVec
-    }
-    ## plot the PCS
-    #pcPlot = ggplot(metaIn, aes(PC1, PC2, color=factor(Pheno)))+geom_point()
-    #plotName = paste0('hlaAssocs/',arg[3], '.png')
-    #message(paste0('PLOTTING PCS AND SAVING TO ', plotName, ' ', timestamp()))
-    #ggsave(filename = plotName, device = 'png', height = 6.7, width = 7.7, dpi = 400)
+    }   
     return(metaIn)
   } else {
     stop('META FILE DOESNT CONTAIN PHENO NAME INPUT')
@@ -105,13 +100,13 @@ metaIO=function(metaFile){
 hibagFilter=function(hla.allele, probCutoff){
   filtered_HLA_gene = hla.allele$value[hla.allele$value$prob >= probCutoff,]
   #meanProb = mean(filtered_HLA_gene$prob)
-  HLA_allele1 <- filtered_HLA_gene[, c("sample.id","allele1")]
-  HLA_allele2 <- filtered_HLA_gene[, c("sample.id","allele2")]
-  names(HLA_allele1) <- c("ID","allele")
-  names(HLA_allele2) <- c("ID","allele")
-  HLA_allele <- rbind(HLA_allele1, HLA_allele2)
-  HLA_count <- as.data.frame.matrix(table(HLA_allele))
-  HLA_allele_name <- make.names(names(HLA_count))
+  HLA_allele1 = filtered_HLA_gene[, c("sample.id","allele1")]
+  HLA_allele2 = filtered_HLA_gene[, c("sample.id","allele2")]
+  names(HLA_allele1) = c("ID","allele")
+  names(HLA_allele2) = c("ID","allele")
+  HLA_allele = rbind(HLA_allele1, HLA_allele2)
+  HLA_count = as.data.frame.matrix(table(HLA_allele))
+  HLA_allele_name = make.names(names(HLA_count))
   names(HLA_count) = HLA_allele_name
   return(HLA_count)
 }
