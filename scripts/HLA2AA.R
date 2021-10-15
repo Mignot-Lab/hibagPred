@@ -1,77 +1,89 @@
 ## author : ambati@stanford.edu
 ## convert DR1 alleles to amino acid calls and run associations
 arg=commandArgs(trailingOnly = T)
-#arg[1] = 'hlaFile Prefix'
-#arg[2] = 'outFile'
-#arg[3] = 'locus name
-PackList = rownames(installed.packages())
-if('data.table' %in%  PackList){
-  require(data.table)
+if (length(arg) == 3){
+  ## read arguments
+  hlaPattern = arg[1]
+  metaFile = arg[2]
+  outFile = paste0(arg[3], '.csv')
+  timestamp()
+  message('3 ARGUMENTS SPECIFIED AS')
+  message(paste0('hlaPattern :', hlaPattern, '\n', 'metaFile :', metaFile, '\n', 'outFile :', outFile))
 } else {
-  install.packages('data.table')
-  require(data.table)
-  
+  stop('INVALID ARGUMENTS, EXPECTING ATLEAST 3 ARGUMENTS')
 }
 
-if('HIBAG' %in% PackList){
-  require(HIBAG)
+## load the source functions
+if (file.exists('scripts/funcs.R')){
+  message('LOADING SOURCE FUNCTIONS')
+  source('scripts/funcs.R')
 } else {
-  if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-  BiocManager::install("HIBAG")
-  require(HIBAG)
+  stop('SOURCE FUNCTION FILE scripts/funcs.R IS NOT READABLE')
+}
+
+## load the libs
+packList = rownames(installed.packages())
+libLoad=packList[grep('tidyverse|data.table|HIBAG|broom', packList)]
+if(length(libLoad) == 4){
+  lapply(libLoad, require, character.only = T, quietly=T)
+  message(paste0('LIBS LOADED ', libLoad, timestamp(), collapse = '\n'))
+} else {
+    
+  message('CHECK IF LIBRARIES HIBAG, tidyverse, broom & data.table ARE INSTALLED? ', timestamp())
 }
 
 
-## main function 
-HLA2AA=function(arg){
-  hlaFile=fread(arg[1])
-  locus = arg[3]
-  hlaObj=hlaAllele(sample.id = hlaFile[[1]], H1 = hlaFile[[2]], H2=hlaFile[[3]], prob = hlaFile[[4]], locus = locus, max.resolution = '4-digit')
-  hla.aa=hlaConvSequence(hla = hlaObj, code = "P.code.merge")
-  filtered_HLA_gene = hla.aa$value[hla.aa$value$prob > 0.3,] # place holder
-  pos.table = summary(hla.aa)
-  increment = pos.table[1,"Pos"] - 1
-  pos.table[,"Pos"] = pos.table[,"Pos"] - increment
-  hla_pos =  pos.table[,"Pos"]
-  out=lapply(hla_pos, function(pos){
-    HLA_allele1 = filtered_HLA_gene[, c("sample.id","allele1")]
-    HLA_allele2 = filtered_HLA_gene[, c("sample.id","allele2")]
-    names(HLA_allele1) = c("ID","allele")
-    names(HLA_allele2) = c("ID","allele")
-    HLA_allele = rbind(HLA_allele1, HLA_allele2)
-    HLA_aa_code = HLA_allele
-    HLA_aa_code$allele = substr(HLA_aa_code$allele, pos, pos)
-    HLA_count = as.data.frame.matrix(table(HLA_aa_code))
-    names(HLA_count)[names(HLA_count) == "-"] = "Ref"
-    names(HLA_count)[names(HLA_count) == "*"] = "Amb"	
-    names(HLA_count)[names(HLA_count) == "."] = "CNV" 
-    names(HLA_count)=paste0(locus, '_', names(HLA_count), '_', pos+increment)
-    #HLA_count$PROB = hlaFile[[4]]
-    return(HLA_count)
-  })
-}
+
 ## convert to HLA amino acids from HLA -DR calls
-hla2aaCombine=function(arg){
-  if(!any(arg[3] %in% c('DQB1', 'DQA1', 'DRB1'))){
-    stop('INVALID LOCI SPECIFIED PLEASE SELECT ONE OF DQB1 DQA1 DRB1')
+hla2aaCombine=function(hlaPattern){
+  hlaDFlist = fileIO(filePre = hlaPattern)
+  classII = c('DQB1', 'DQA1', 'DRB1')
+  if(!any(names(hlaDFlist) %in% classII)){
+    stop('INVALID LOCI SPECIFIED PLEASE CHECK IF DQB1 DQA1 DRB1 EXIST in hlaOut FOLDER')
     } else {
-    convList=HLA2AA(arg)
-    convDF = data.table(sample.id=rownames(convList[[1]]))
-    for(pos in convList){
-      temp=data.table(pos, keep.rownames = T)
-      if(identical(temp$rn, convDF$sample.id)){
-        convDF = cbind.data.frame(convDF, pos)
+    convList=lapply(classII, function(hla){
+      #make sub arguments to pass HLA2AA function
+      hlaFile = hlaDFlist[[hla]]
+      locus = hla
+      out=HLA2AA(hlaFile,locus, probCutoff=0.3)
+      convDF = data.table(sample.id=rownames(out[[1]]))
+      for(pos in out){
+        temp=data.table(pos, keep.rownames = T)
+        if(identical(temp$rn, convDF$sample.id)){
+          convDF = cbind.data.frame(convDF, pos)
+        }
       }
-    }
-    setDT(convDF)
-    fwrite(convDF, file = arg[2])
-    return(convDF)
+      setDT(convDF)
+    })
+    names(convList) = classII
+    return(convList)
   }
 }
 
 ## setup asscociations
-source('scripts/funcs.R')
+convList = hla2aaCombine(hlaPattern)
+hla.meta = metaIO(metaFile = metaFile)
+hlaNames = names(convList)
+
+
+## run the associations
+out.allele.Results=lapply(hlaNames, FUN = function(hla) 
+  allele.Glm.Fishers(
+  hla.meta = hla.meta, HLA_count=convList[[hla]],hla=hla)
+  %>% rbindlist()) %>% rbindlist() %>% arrange(glm.P)
+
+## write out the files
+if (!is.null(out.allele.Results)){
+  fwrite(out.allele.Results, file = paste0('hlaAssocs/', outFile))
+  message(paste0("ASSOCIATIONS WRITTEN TO ", paste0('hlaAssocs/', outFile), " ", timestamp()))
+} else {
+  stop('ASSOCIATIONS FAILED')
+}
+#sink()
+
+
+
+
 
 
 

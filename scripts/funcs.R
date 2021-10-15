@@ -16,12 +16,10 @@ fileIO=function(filePre){
 }
 
 ## amino acid conv 
-HLA2AA=function(arg){
-  hlaFile=fread(arg[1])
-  locus = arg[3]
+HLA2AA=function(hlaFile, locus, probCutoff){
   hlaObj=hlaAllele(sample.id = hlaFile[[1]], H1 = hlaFile[[2]], H2=hlaFile[[3]], prob = hlaFile[[4]], locus = locus, max.resolution = '4-digit')
   hla.aa=hlaConvSequence(hla = hlaObj, code = "P.code.merge")
-  filtered_HLA_gene = hla.aa$value[hla.aa$value$prob > 0.3,] # place holder
+  filtered_HLA_gene = hla.aa$value[hla.aa$value$prob > probCutoff,] # place holder
   pos.table = summary(hla.aa)
   increment = pos.table[1,"Pos"] - 1
   pos.table[,"Pos"] = pos.table[,"Pos"] - increment
@@ -102,4 +100,47 @@ metaIO=function(metaFile){
     stop('META FILE DOESNT CONTAIN PHENO NAME INPUT')
   }
 
+}
+
+allele.Glm.Fishers = function(hla, hla.meta, HLA_count){
+  HLA_allele_name = names(HLA_count)[-1]
+  if (length(HLA_allele_name) >= 1){ ## more than one allele atleast
+    setDT(HLA_count, key='sample.id', keep.rownames = T)
+    HLA_count[hla.meta, c('Pheno', 'PC1', 'PC2', 'PC3', 'PC4'):=list(Pheno, PC1, PC2, PC3, PC4), by=.EACHI]
+    HLA_count = HLA_count[!is.na(Pheno)]
+    n.cases = nrow(HLA_count[Pheno==1])#$sample.id
+    n.controls = nrow(HLA_count[Pheno==0])
+    HLA_countCarrier = copy(HLA_count)
+    HLA_countCarrier[, HLA_allele_name] = data.table(apply(HLA_countCarrier[, HLA_allele_name, with =F], 2, function(x) ifelse(x > 0, 1, 0)))
+    lapply(HLA_allele_name, function(allele){
+      model.design=paste0("Pheno ~ ",allele,"+PC1+PC2+PC3+PC4")
+      fit = glm(model.design, data = HLA_countCarrier, family = 'binomial')
+      fitDF = data.table(tidy(fit))
+      fitDF=fitDF[term == allele]
+      #print(fitDF)
+      Case.Car= apply(HLA_count[Pheno == 1, allele, with =F], 2, FUN = function(x) sum(ifelse(x > 0, 1, 0)))
+      Case.Not = n.cases-Case.Car
+      Control.Car = apply(HLA_count[Pheno == 0, allele, with =F], 2, FUN = function(x) sum(ifelse(x > 0, 1, 0)))
+      Control.Not = n.controls-Control.Car
+      totalCarrier = apply(HLA_count[, allele, with =F], 2, FUN = function(x) sum(ifelse(x > 0, 1, 0)))
+      ## allele freq
+      Case.Alleles= sum(HLA_count[Pheno == 1, allele, with =F])
+      Case.Alelles.Not = (2*n.cases)-Case.Alleles
+      Control.Alleles= sum(HLA_count[Pheno == 0, allele, with =F])
+      Control.Alelles.Not = (2*n.controls)-Control.Alleles
+      Mat.Carrier = matrix(c(Case.Car,  Control.Car, Case.Not, Control.Not), nrow = 2, dimnames = list(c('Case', 'Control'), c('Yes', 'No')))
+      Fishers.Fit = fisher.test(Mat.Carrier)
+      #allele=gsub('X', '',allele)
+      outPut=data.frame(row.names = NULL, HLA=hla, allele, 
+                      rsid= allele,
+                      F.Pval = Fishers.Fit$p.value, F.OR = Fishers.Fit$estimate, F.CI=paste0( signif(Fishers.Fit$conf.int[1], 3),'-', signif(Fishers.Fit$conf.int[2],3)), 
+                      glm.P=fitDF$p.value, glm.E=fitDF$estimate, glm.StdE = fitDF$std.error,
+                      Case.Car, Case.Freq=signif(Case.Car/n.cases,3), Control.Car, 
+                      Control.Freq=signif(Control.Car/n.controls, 3),
+                      Case.Not, Control.Not, Case.Alleles, Case.Alelles.Not, Control.Alleles, Control.Alelles.Not, 
+                      Case.Freq.Allele = signif(Case.Alleles/(2*n.cases),3), 
+                      Control.Freq.Allele = signif(Control.Alleles/(2*n.controls),3), totalFreq=totalCarrier/(n.cases+n.controls), totalN=(n.cases+n.controls))
+      return(outPut)
+    }) 
+  }
 }
