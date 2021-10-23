@@ -59,6 +59,7 @@ makeHaps=function(hlaDFlist){
       outPutList$hapFreq = print(fit)
       outPutList$genos = genos
       haplCalls = data.table(sample.id=genos$sample.id[fit$subj.id], hap.1=fit$hap1code,  hap.2=fit$hap2code, hap.prob=fit$post)
+      haplCalls=haplCalls[, .SD[which.max(hap.prob)], by=sample.id]
       haplotypes = apply(fit$haplotype, 1, function(x) paste0(x, collapse = "_"))
       ##assign actuall lhaps
       haplCalls$hap.1=haplotypes[haplCalls$hap.1]
