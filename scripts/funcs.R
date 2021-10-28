@@ -75,7 +75,7 @@ makeHaps=function(hlaDFlist){
   }
 }
 
-aminoHap = function(hlaFile, locus, probCutoff){
+aminoDRB1 = function(hlaFile, locus, probCutoff){
   hlaObj=hlaAllele(sample.id = hlaFile[[1]], H1 = hlaFile[[2]], H2=hlaFile[[3]], prob = hlaFile[[4]], locus = locus, max.resolution = '4-digit')
   hla.aa=hlaConvSequence(hla = hlaObj, code = "P.code.merge")
   filtered_HLA_gene = hla.aa$value[hla.aa$value$prob > probCutoff,]
@@ -84,15 +84,21 @@ aminoHap = function(hlaFile, locus, probCutoff){
   pos.table[,"Pos"] = pos.table[,"Pos"] - increment
   hla_pos =  pos.table[,"Pos"]
   posNeeded = c(13, 33, 57)-increment
-  sapply(posNeeded, function(pos){
+  lapply(posNeeded, function(pos){
     a1 = substr(filtered_HLA_gene$allele1, pos, pos)
     a2 = substr(filtered_HLA_gene$allele2, pos, pos)
     a1[a1 == "-"] = "Ref";a1[a1 == "*"] = "Amb";a1[a1 == "."] = "CNV"
     a2[a2 == "-"] = "Ref";a2[a2 == "*"] = "Amb";a2[a2 == "."] = "CNV"
     alleleNames = paste0(locus, '_', pos+increment)
-    data.table(sample.id = filtered_HLA_gene$sample.id, )
+    a1 = paste0(pos+increment, '_', a1);a2 = paste0(pos+increment, '_', a2)
+    outTemp=data.table(sample.id = filtered_HLA_gene$sample.id, a1, a2)
+    names(outTemp)[2:3] = paste0(alleleNames, '.', 1:2)
+    return(outTemp)
   })
-  
+}
+
+aminoHap = function(DRB1AAList){
+
 }
 
 ## function to parse PCS and DX 
