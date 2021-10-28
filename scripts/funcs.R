@@ -59,6 +59,7 @@ makeHaps=function(hlaDFlist){
       outPutList$hapFreq = print(fit)
       outPutList$genos = genos
       haplCalls = data.table(sample.id=genos$sample.id[fit$subj.id], hap.1=fit$hap1code,  hap.2=fit$hap2code, hap.prob=fit$post)
+      haplCalls=haplCalls[, .SD[which.max(hap.prob)], by=sample.id]
       haplotypes = apply(fit$haplotype, 1, function(x) paste0(x, collapse = "_"))
       ##assign actuall lhaps
       haplCalls$hap.1=haplotypes[haplCalls$hap.1]
@@ -97,8 +98,40 @@ aminoDRB1 = function(hlaFile, locus, probCutoff){
   })
 }
 
+## Function to construct AminoAcid Haplotypes
 aminoHap = function(DRB1AAList){
-
+    genos = data.frame(sample.id = DRB1AAList[[1]]$sample.id)
+    for(df in DRB1AAList){
+      if(identical(df$sample.id, genos$sample.id)){
+        genos=cbind.data.frame(genos, df[, 2:3])
+      } else {
+        stop('SAMPLE IDS DONT MATCH')
+      }
+    }
+    if(dim(genos)[1] > 20){
+      timestamp()
+      message('FITTING HAPLOTYPES TO DRB1 AMINOACID HAPLOTYPES')
+      outPutList = NULL
+      outPutList$IDS = genos$sample.id
+      fit=haplo.em(geno = genos[, -1], locus.label=c('DRB1_13', 'DRB1_33', 'DRB1_57'))
+      outPutList$hapFreq = print(fit)
+      outPutList$genos = genos
+      haplCalls = data.table(sample.id=genos$sample.id[fit$subj.id], hap.1=fit$hap1code,  hap.2=fit$hap2code, hap.prob=fit$post)
+      haplCalls=haplCalls[, .SD[which.max(hap.prob)], by=sample.id]
+      haplotypes = apply(fit$haplotype, 1, function(x) paste0(x, collapse = "_"))
+      ##assign actuall lhaps
+      haplCalls$hap.1=haplotypes[haplCalls$hap.1]
+      haplCalls$hap.2=haplotypes[haplCalls$hap.2]
+      outPutList$fit = fit
+      outPutList$haplCalls = haplCalls#hlaAllele(sample.id = haplCalls$id, H1 = haplCalls$hap1, H2=haplCalls$hap2, prob = haplCalls$prob)
+      #outPutList$haplCalls$locus = 'DQB_DQA_DRB'
+      outPutList$haplotypes = haplotypes
+      return(outPutList)
+    } else {
+      message('MIN SAMPLE SIZE IS 20')
+      return(NULL)
+    }
+  }
 }
 
 ## function to parse PCS and DX 
