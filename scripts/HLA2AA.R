@@ -23,15 +23,14 @@ if (file.exists('scripts/funcs.R')){
 
 ## load the libs
 packList = rownames(installed.packages())
-libLoad=packList[grep('tidyverse|data.table|HIBAG|broom', packList)]
-if(length(libLoad) == 4){
-  lapply(libLoad, require, character.only = T, quietly=T)
+libLoad=packList[grep('tidyverse|data.table|HIBAG|broom|haplo.stats', packList)]
+if(length(libLoad) == 5){
+  lapply(libLoad, require, character.only = T)
   message(paste0('LIBS LOADED ', libLoad, timestamp(), collapse = '\n'))
 } else {
     
-  message('CHECK IF LIBRARIES HIBAG, tidyverse, broom & data.table ARE INSTALLED? ', timestamp())
+  message('CHECK IF LIBRARIES HIBAG, tidyverse, broom, haplo.stats & data.table ARE INSTALLED? ', timestamp())
 }
-
 
 
 ## convert to HLA amino acids from HLA -DR calls
@@ -52,6 +51,19 @@ hla2aaCombine=function(hlaPattern){
         if(identical(temp$rn, convDF$sample.id)){
           convDF = cbind.data.frame(convDF, pos)
         }
+      }
+      if(hla == 'DRB1'){
+        drb1aalist=aminoDRB1(hlaFile = hlaFile, locus = 'DRB1', probCutoff = 0.3)
+        haps=aminoHap(drb1aalist)
+        print(haps)
+        print(names(convDF))
+        if(identical(haps$rn, convDF$sample.id)){
+          names(haps) = paste0(hla,'_', names(haps))
+          convDF = cbind.data.frame(convDF, haps[, -1])
+        } else {
+          stop()
+        }
+
       }
       setDT(convDF)
     })

@@ -126,12 +126,13 @@ aminoHap = function(DRB1AAList){
       outPutList$haplCalls = haplCalls#hlaAllele(sample.id = haplCalls$id, H1 = haplCalls$hap1, H2=haplCalls$hap2, prob = haplCalls$prob)
       #outPutList$haplCalls$locus = 'DQB_DQA_DRB'
       outPutList$haplotypes = haplotypes
-      return(outPutList)
+      #one hot encode the haplotypes
+      outPutList$onc = as.data.frame.matrix(table(data.table(sample.id=rep(haplCalls$sample.id, 2), allele = c(haplCalls$hap.1, haplCalls$hap.2)))) %>% data.table(keep.rownames = T)
+      return(outPutList$onc)
     } else {
       message('MIN SAMPLE SIZE IS 20')
       return(NULL)
     }
-  }
 }
 
 ## function to parse PCS and DX 
