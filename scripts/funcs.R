@@ -162,18 +162,24 @@ metaIO=function(metaFile){
 
 }
 
-allele.Glm.Fishers = function(hla, hla.meta, HLA_count){
+allele.Glm.Fishers = function(hla, hla.meta, HLA_count, designStr){
   HLA_allele_name = names(HLA_count)[-1]
   if (length(HLA_allele_name) >= 1){ ## more than one allele atleast
-    setDT(HLA_count, key='sample.id', keep.rownames = T)
-    HLA_count[hla.meta, c('Pheno', 'PC1', 'PC2', 'PC3', 'PC4'):=list(Pheno, PC1, PC2, PC3, PC4), by=.EACHI]
+    if (!is.null(designStr)){
+      HLA_count = merge.data.frame(HLA_count, hla.meta, by="sample.id") %>% data.table()#inner join
+    } else {
+      designStr = "PC1+PC2+PC3+PC4"
+      setDT(HLA_count, key='sample.id', keep.rownames = T)
+      HLA_count[hla.meta, c('Pheno', 'PC1', 'PC2', 'PC3', 'PC4'):=list(Pheno, PC1, PC2, PC3, PC4), by=.EACHI]
+    }
     HLA_count = HLA_count[!is.na(Pheno)]
     n.cases = nrow(HLA_count[Pheno==1])#$sample.id
     n.controls = nrow(HLA_count[Pheno==0])
     HLA_countCarrier = copy(HLA_count)
     HLA_countCarrier[, HLA_allele_name] = data.table(apply(HLA_countCarrier[, HLA_allele_name, with =F], 2, function(x) ifelse(x > 0, 1, 0)))
     lapply(HLA_allele_name, function(allele){
-      model.design=paste0("Pheno ~ ",allele,"+PC1+PC2+PC3+PC4")
+      model.design=paste0("Pheno ~ ",allele,'+',designStr)
+      print(model.design)
       fit = glm(model.design, data = HLA_countCarrier, family = 'binomial')
       fitDF = data.table(tidy(fit))
       fitDF=fitDF[term == allele]

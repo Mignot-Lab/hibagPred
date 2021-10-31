@@ -6,11 +6,21 @@ if (length(arg) == 3){
   hlaPattern = arg[1]
   metaFile = arg[2]
   outFile = paste0(arg[3], '.csv')
+  designStr = NULL
   timestamp()
   message('3 ARGUMENTS SPECIFIED AS')
   message(paste0('hlaPattern :', hlaPattern, '\n', 'metaFile :', metaFile, '\n', 'outFile :', outFile))
+} else if(length(arg) == 4){
+  message('YOU HAVE SPECIFIED CUSTOM DESIGN MATRIX')
+  hlaPattern = arg[1]
+  metaFile = arg[2]
+  outFile = paste0(arg[3], '.csv')
+  designStr = as.character(arg[4])
+  timestamp()
+  message('4 ARGUMENTS SPECIFIED AS')
+  message(paste0('hlaPattern :', hlaPattern, '\n', 'metaFile :', metaFile, '\n', 'outFile :', outFile, '\n', 'designStr :', designStr))
 } else {
-  stop('INVALID ARGUMENTS, EXPECTING ATLEAST 3 ARGUMENTS')
+  stop('INVALID ARGUMENTS, EXPECTING ATLEAST 3 or 4 ARGUMENTS')
 }
 
 ## load the source functions
@@ -81,7 +91,7 @@ hlaNames = names(convList)
 ## run the associations
 out.allele.Results=lapply(hlaNames, FUN = function(hla) 
   allele.Glm.Fishers(
-  hla.meta = hla.meta, HLA_count=convList[[hla]],hla=hla)
+  hla.meta = hla.meta, HLA_count=convList[[hla]],hla=hla, designStr=designStr)
   %>% rbindlist()) %>% rbindlist() %>% arrange(glm.P)
 
 ## write out the files
