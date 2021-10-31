@@ -168,7 +168,7 @@ allele.Glm.Fishers = function(hla, hla.meta, HLA_count, designStr){
     if (!is.null(designStr)){
       HLA_count = merge.data.frame(HLA_count, hla.meta, by="sample.id") %>% data.table()#inner join
     } else {
-      designStr = "PC1+PC2+PC3+PC4"
+      designStr = "+PC1+PC2+PC3+PC4"
       setDT(HLA_count, key='sample.id', keep.rownames = T)
       HLA_count[hla.meta, c('Pheno', 'PC1', 'PC2', 'PC3', 'PC4'):=list(Pheno, PC1, PC2, PC3, PC4), by=.EACHI]
     }
@@ -178,7 +178,7 @@ allele.Glm.Fishers = function(hla, hla.meta, HLA_count, designStr){
     HLA_countCarrier = copy(HLA_count)
     HLA_countCarrier[, HLA_allele_name] = data.table(apply(HLA_countCarrier[, HLA_allele_name, with =F], 2, function(x) ifelse(x > 0, 1, 0)))
     lapply(HLA_allele_name, function(allele){
-      model.design=paste0("Pheno ~ ",allele,'+',designStr)
+      model.design=paste0("Pheno ~ ",allele,designStr)
       print(model.design)
       fit = glm(model.design, data = HLA_countCarrier, family = 'binomial')
       fitDF = data.table(tidy(fit))
