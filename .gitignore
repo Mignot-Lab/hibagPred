@@ -40,8 +40,12 @@ vignettes/*.pdf
 
 #csv files
 1000g_MHC_Preds_IMP*
+*IMP*
+*.csv
+*.covar
 
 #log file
 *.log
 *.zip
 *.json
+*.sh
