@@ -27,7 +27,8 @@ if('HIBAG' %in% PackList){
   require(HIBAG)
 }
 
-cl = makeCluster(24)
+ncores = detectCores()
+cl = makeCluster(ncores-1)
 ## load the models
 
 model.list <- get(load(arg[1])) 

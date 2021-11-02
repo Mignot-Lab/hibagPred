@@ -76,6 +76,67 @@ makeHaps=function(hlaDFlist){
   }
 }
 
+aminoDRB1 = function(hlaFile, locus, probCutoff){
+  hlaObj=hlaAllele(sample.id = hlaFile[[1]], H1 = hlaFile[[2]], H2=hlaFile[[3]], prob = hlaFile[[4]], locus = locus, max.resolution = '4-digit')
+  hla.aa=hlaConvSequence(hla = hlaObj, code = "P.code.merge")
+  filtered_HLA_gene = hla.aa$value[hla.aa$value$prob > probCutoff,]
+  pos.table = summary(hla.aa)
+  increment = pos.table[1,"Pos"] - 1
+  pos.table[,"Pos"] = pos.table[,"Pos"] - increment
+  hla_pos =  pos.table[,"Pos"]
+  posNeeded = c(13, 33, 57)-increment
+  lapply(posNeeded, function(pos){
+    a1 = substr(filtered_HLA_gene$allele1, pos, pos)
+    a2 = substr(filtered_HLA_gene$allele2, pos, pos)
+    a1[a1 == "-"] = "Ref";a1[a1 == "*"] = "Amb";a1[a1 == "."] = "CNV"
+    a2[a2 == "-"] = "Ref";a2[a2 == "*"] = "Amb";a2[a2 == "."] = "CNV"
+    alleleNames = paste0(locus, '_', pos+increment)
+    a1 = paste0(pos+increment, '_', a1);a2 = paste0(pos+increment, '_', a2)
+    outTemp=data.table(sample.id = filtered_HLA_gene$sample.id, a1, a2)
+    names(outTemp)[2:3] = paste0(alleleNames, '.', 1:2)
+    return(outTemp)
+  })
+}
+
+## Function to construct AminoAcid Haplotypes
+aminoHap = function(DRB1AAList){
+    genos = data.frame(sample.id = DRB1AAList[[1]]$sample.id)
+    for(df in DRB1AAList){
+      if(identical(df$sample.id, genos$sample.id)){
+        genos=cbind.data.frame(genos, df[, 2:3])
+      } else {
+        message('SAMPLE IDS DONT MATCH- SO DOING MERGE BY SAMPLE.IDS')
+        genos = merge.data.frame(genos, df[, 1:3], by='sample.id', all.x = T)
+        print(genos)
+      }
+    }
+    if(dim(genos)[1] > 20){
+      timestamp()
+      message('FITTING HAPLOTYPES TO DRB1 AMINOACID HAPLOTYPES')
+      outPutList = NULL
+      outPutList$IDS = genos$sample.id
+      fit=haplo.em(geno = genos[, -1], locus.label=c('DRB1_13', 'DRB1_33', 'DRB1_57'))
+      outPutList$hapFreq = print(fit)
+      outPutList$genos = genos
+      haplCalls = data.table(sample.id=genos$sample.id[fit$subj.id], hap.1=fit$hap1code,  hap.2=fit$hap2code, hap.prob=fit$post)
+      haplCalls=haplCalls[, .SD[which.max(hap.prob)], by=sample.id]
+      haplotypes = apply(fit$haplotype, 1, function(x) paste0(x, collapse = "_"))
+      ##assign actuall lhaps
+      haplCalls$hap.1=haplotypes[haplCalls$hap.1]
+      haplCalls$hap.2=haplotypes[haplCalls$hap.2]
+      outPutList$fit = fit
+      outPutList$haplCalls = haplCalls#hlaAllele(sample.id = haplCalls$id, H1 = haplCalls$hap1, H2=haplCalls$hap2, prob = haplCalls$prob)
+      #outPutList$haplCalls$locus = 'DQB_DQA_DRB'
+      outPutList$haplotypes = haplotypes
+      #one hot encode the haplotypes
+      outPutList$onc = as.data.frame.matrix(table(data.table(sample.id=rep(haplCalls$sample.id, 2), allele = c(haplCalls$hap.1, haplCalls$hap.2)))) %>% data.table(keep.rownames = T)
+      return(outPutList$onc)
+    } else {
+      message('MIN SAMPLE SIZE IS 20')
+      return(NULL)
+    }
+}
+
 ## function to parse PCS and DX 
 metaIO=function(metaFile){
   metaIn = fread(metaFile, key='sample.id')
