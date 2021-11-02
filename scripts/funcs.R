@@ -105,7 +105,9 @@ aminoHap = function(DRB1AAList){
       if(identical(df$sample.id, genos$sample.id)){
         genos=cbind.data.frame(genos, df[, 2:3])
       } else {
-        stop('SAMPLE IDS DONT MATCH')
+        message('SAMPLE IDS DONT MATCH- SO DOING MERGE BY SAMPLE.IDS')
+        genos = merge.data.frame(genos, df[, 1:3], by='sample.id', all.x = T)
+        print(genos)
       }
     }
     if(dim(genos)[1] > 20){
