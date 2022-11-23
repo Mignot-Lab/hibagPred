@@ -78,3 +78,23 @@ EAS1KG_IMP \
 meta/hlaMeta.csv \
 easAA
 ```
+
+# convHLA2AA.R
+A script to make HLA class II amino acid calls from HLA alleles and write to disk- The script is expecting atleast 4 arguments.
+
+Argument1 = full path to imputed HLA file DQB1.
+
+Argument2 = full path to imputed HLA file DQA1.
+
+Argument3 = full path to imputed HLA file DRB1.
+
+Argument4 = file prefix to write the amino acid calls.
+
+```
+Rscript scripts/convHLA2AA.R \
+hlaOut/1000g_MHC_Preds_IMP_DQB1.csv \
+hlaOut/1000g_MHC_Preds_IMP_DQA1.csv \
+hlaOut/1000g_MHC_Preds_IMP_DRB1.csv \
+1000gtest
+```
+you should see outputs in a new created dir called aminoAcids
